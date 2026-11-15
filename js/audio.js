@@ -56,6 +56,13 @@ window.Audio2 = (() => {
    * play(id) — reads from recorded audio or TTS from VOICE_DICT
    * Returns 'recorded' | 'tts' | 'none'
    */
+  function getLang(){
+    try {
+      var l = Store.get('language', 'both');
+      return (l === 'fr' || l === 'eg') ? l : 'both';
+    } catch(e) { return 'both'; }
+  }
+
   async function play(id, opts={}){
     const ok = await playRecorded(id);
     if(ok) return 'recorded';
@@ -83,9 +90,19 @@ window.Audio2 = (() => {
    * speakBoth(id) — speak French first, then Egyptian
    */
   async function speakBoth(id){
+    const lang = getLang();
     const flat = window.VOICE_DICT ? getAllPhrases() : [];
     const item = flat.find(x => x.id === id);
     if(!item) return;
+    if(lang === 'eg'){
+      const okRec = await playRecorded('eg_' + item.id.replace(/^fr_/, ''));
+      if(!okRec) await speakTTS(item.eg, 'eg');
+      return;
+    }
+    if(lang === 'fr'){
+      await play(item.id, { text: item.fr, lang: 'fr' });
+      return;
+    }
     await play(item.id, { text: item.fr, lang: 'fr' });
     await new Promise(r => setTimeout(r, 600));
     // Egyptian TTS

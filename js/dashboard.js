@@ -282,6 +282,7 @@ window.Dashboard = (() => {
       Settings.setLanguage(document.getElementById('set-language').value);
       Settings.setTheme(document.getElementById('set-theme').value);
       alert('✅ تم الحفظ');
+      try { window.dispatchEvent(new CustomEvent('hl:settings-updated')); } catch(e){}
     });
     document.getElementById('btn-replay-intro').addEventListener('click', () => {
       Audio2.play('eg_intro_full', {});
