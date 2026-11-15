@@ -1,0 +1,50 @@
+/* ===== Game common styles ===== */
+.game-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:12px}
+
+.game-title-fr{font-size:clamp(22px,5vw,32px);color:#e0567f;font-weight:bold;text-align:center}
+.game-hint{font-size:clamp(14px,3vw,18px);color:#6b5560;text-align:center}
+
+/* Number grid */
+.num-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(70px,15vw,110px),1fr));gap:12px;width:100%;max-width:800px}
+.num-btn{
+  aspect-ratio:1/1;border-radius:20px;background:#fff;box-shadow:0 4px 14px rgba(224,86,127,.2);
+  font-size:clamp(32px,7vw,52px);font-weight:bold;color:#e0567f;display:grid;place-items:center;
+  transition:transform .15s;cursor:pointer;
+}
+.num-btn:active{transform:scale(.9)}
+.num-btn.pressed{background:#ffe1ea}
+
+/* Choice buttons */
+.choices{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.choice-btn{
+  padding:20px 32px;border-radius:20px;background:#fff;box-shadow:0 4px 14px rgba(224,86,127,.2);
+  font-size:clamp(28px,6vw,44px);font-weight:bold;color:#e0567f;cursor:pointer;
+  min-width:clamp(80px,20vw,140px);transition:transform .15s;
+}
+.choice-btn:active{transform:scale(.9)}
+.choice-btn.correct{background:#9be3a8;color:#fff;animation:pop .4s}
+.choice-btn.wrong{background:#ffb3b3;animation:shake .4s}
+
+/* Animal rows */
+.animal-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:clamp(36px,9vw,60px)}
+
+/* Star burst */
+.star-burst{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:120px;pointer-events:none;animation:burst .9s forwards;z-index:9999}
+@keyframes burst{0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}100%{opacity:0;transform:translate(-50%,-50%) scale(2)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* Prompt button */
+.speak-btn{
+  padding:18px 32px;border-radius:24px;background:#7ec8ff;color:#fff;font-size:clamp(20px,4vw,28px);
+  font-weight:bold;box-shadow:0 4px 14px rgba(126,200,255,.4);cursor:pointer;transition:transform .15s;
+}
+.speak-btn:active{transform:scale(.9)}
+
+/* Progress dots */
+.dots{display:flex;gap:8px;justify-content:center}
+.dot{width:14px;height:14px;border-radius:50%;background:#e0e0e0}
+.dot.done{background:#9be3a8}
+.dot.current{background:#ff8fb1}
+
+/* Back to home floater */
+.game-back{position:absolute;top:8px;left:8px;background:#fff;border-radius:50%;width:48px;height:48px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.1);font-size:24px;cursor:pointer;z-index:5}

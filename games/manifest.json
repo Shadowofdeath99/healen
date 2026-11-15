@@ -1,0 +1,355 @@
+{
+  "version": 1,
+  "games": [
+    {
+      "id": "01",
+      "emoji": "🔢",
+      "title": "Les Nombres 1–10",
+      "script": "01-numbers.js",
+      "locked": false
+    },
+    {
+      "id": "02",
+      "emoji": "👂",
+      "title": "Écoute et Choisis (Nombres)",
+      "script": "02-choose-number.js",
+      "locked": false
+    },
+    {
+      "id": "03",
+      "emoji": "🐣",
+      "title": "Compte les Animaux",
+      "script": "03-count-animals.js",
+      "locked": false
+    },
+    {
+      "id": "04",
+      "emoji": "⚖️",
+      "title": "Plus ou Moins",
+      "script": "04-more-less.js",
+      "locked": false
+    },
+    {
+      "id": "05",
+      "emoji": "🔀",
+      "title": "Ordre Croissant",
+      "script": "05-ascending.js",
+      "locked": false
+    },
+    {
+      "id": "06",
+      "emoji": "❓",
+      "title": "Numéro Manquant",
+      "script": "06-missing-number.js",
+      "locked": false
+    },
+    {
+      "id": "07",
+      "emoji": "➕",
+      "title": "Addition Visuelle",
+      "script": "07-addition.js",
+      "locked": false
+    },
+    {
+      "id": "08",
+      "emoji": "➖",
+      "title": "Soustraction Visuelle",
+      "script": "08-subtraction.js",
+      "locked": false
+    },
+    {
+      "id": "09",
+      "emoji": "🔗",
+      "title": "Match Number–Quantity",
+      "script": "09-match-quantity.js",
+      "locked": false
+    },
+    {
+      "id": "10",
+      "emoji": "✋",
+      "title": "Compte les Doigts",
+      "script": "10-fingers.js",
+      "locked": false
+    },
+    {
+      "id": "11",
+      "emoji": "🔤",
+      "title": "Les Lettres A–Z",
+      "script": "11-letters.js",
+      "locked": false
+    },
+    {
+      "id": "12",
+      "emoji": "🅰️",
+      "title": "Première Lettre",
+      "script": "12-first-letter.js",
+      "locked": false
+    },
+    {
+      "id": "13",
+      "emoji": "🧩",
+      "title": "Les Syllabes",
+      "script": "13-syllables.js",
+      "locked": false
+    },
+    {
+      "id": "14",
+      "emoji": "🖼️",
+      "title": "Relie Mot–Image",
+      "script": "14-word-image.js",
+      "locked": false
+    },
+    {
+      "id": "15",
+      "emoji": "👂",
+      "title": "Écoute et Choisis (Mots)",
+      "script": "15-choose-word.js",
+      "locked": false
+    },
+    {
+      "id": "16",
+      "emoji": "🐾",
+      "title": "Les Animaux & Sons",
+      "script": "16-animals-sounds.js",
+      "locked": false
+    },
+    {
+      "id": "17",
+      "emoji": "🦁",
+      "title": "Écoute et Choisis (Animaux)",
+      "script": "17-choose-animal.js",
+      "locked": false
+    },
+    {
+      "id": "18",
+      "emoji": "🏞️",
+      "title": "Habitat des Animaux",
+      "script": "18-habitat.js",
+      "locked": false
+    },
+    {
+      "id": "19",
+      "emoji": "👶",
+      "title": "Bébé et Maman",
+      "script": "19-baby-mama.js",
+      "locked": false
+    },
+    {
+      "id": "20",
+      "emoji": "🍽️",
+      "title": "Qui mange quoi?",
+      "script": "20-food.js",
+      "locked": false
+    },
+    {
+      "id": "21",
+      "emoji": "🎨",
+      "title": "Les Couleurs",
+      "script": "21-colors.js",
+      "locked": false
+    },
+    {
+      "id": "22",
+      "emoji": "🔍",
+      "title": "Trouve la Couleur",
+      "script": "22-find-color.js",
+      "locked": false
+    },
+    {
+      "id": "23",
+      "emoji": "⬛",
+      "title": "Les Formes",
+      "script": "23-shapes.js",
+      "locked": false
+    },
+    {
+      "id": "24",
+      "emoji": "🌀",
+      "title": "Mélange les Couleurs",
+      "script": "24-mix-colors.js",
+      "locked": false
+    },
+    {
+      "id": "25",
+      "emoji": "🍎",
+      "title": "Couleur de l'Objet",
+      "script": "25-object-color.js",
+      "locked": false
+    },
+    {
+      "id": "26",
+      "emoji": "🐘",
+      "title": "Grand / Petit",
+      "script": "26-big-small.js",
+      "locked": false
+    },
+    {
+      "id": "27",
+      "emoji": "📏",
+      "title": "Long / Court",
+      "script": "27-long-short.js",
+      "locked": false
+    },
+    {
+      "id": "28",
+      "emoji": "🍬",
+      "title": "Beaucoup / Peu",
+      "script": "28-many-few.js",
+      "locked": false
+    },
+    {
+      "id": "29",
+      "emoji": "🔥",
+      "title": "Chaud / Froid",
+      "script": "29-hot-cold.js",
+      "locked": false
+    },
+    {
+      "id": "30",
+      "emoji": "📦",
+      "title": "Dedans / Dehors",
+      "script": "30-in-out.js",
+      "locked": false
+    },
+    {
+      "id": "31",
+      "emoji": "🖍️",
+      "title": "Coloriage Libre",
+      "script": "31-coloring-free.js",
+      "locked": false
+    },
+    {
+      "id": "32",
+      "emoji": "👸",
+      "title": "Coloriage Princesse",
+      "script": "32-coloring-princess.js",
+      "locked": false
+    },
+    {
+      "id": "33",
+      "emoji": "🏠",
+      "title": "Coloriage Maison",
+      "script": "33-coloring-house.js",
+      "locked": false
+    },
+    {
+      "id": "34",
+      "emoji": "🐶",
+      "title": "Coloriage Animaux",
+      "script": "34-coloring-animals.js",
+      "locked": false
+    },
+    {
+      "id": "35",
+      "emoji": "🔵",
+      "title": "Relie les Points",
+      "script": "35-connect-dots.js",
+      "locked": false
+    },
+    {
+      "id": "36",
+      "emoji": "🎹",
+      "title": "Les Instruments",
+      "script": "36-instruments.js",
+      "locked": false
+    },
+    {
+      "id": "37",
+      "emoji": "🔊",
+      "title": "Fort / Doux",
+      "script": "37-loud-soft.js",
+      "locked": false
+    },
+    {
+      "id": "38",
+      "emoji": "🥁",
+      "title": "Rythme à Reproduire",
+      "script": "38-rhythm.js",
+      "locked": false
+    },
+    {
+      "id": "39",
+      "emoji": "🌧️",
+      "title": "Son de la Nature",
+      "script": "39-nature-sounds.js",
+      "locked": false
+    },
+    {
+      "id": "40",
+      "emoji": "🎧",
+      "title": "Écoute et Choisis (Sons)",
+      "script": "40-choose-sound.js",
+      "locked": false
+    },
+    {
+      "id": "41",
+      "emoji": "🧠",
+      "title": "Memory",
+      "script": "41-memory.js",
+      "locked": false
+    },
+    {
+      "id": "42",
+      "emoji": "🕵️",
+      "title": "Trouve l'Intrus",
+      "script": "42-intruder.js",
+      "locked": false
+    },
+    {
+      "id": "43",
+      "emoji": "➡️",
+      "title": "Suite Logique",
+      "script": "43-pattern.js",
+      "locked": false
+    },
+    {
+      "id": "44",
+      "emoji": "👤",
+      "title": "Ombres",
+      "script": "44-shadows.js",
+      "locked": false
+    },
+    {
+      "id": "45",
+      "emoji": "🧩",
+      "title": "Puzzle",
+      "script": "45-puzzle.js",
+      "locked": false
+    },
+    {
+      "id": "46",
+      "emoji": "🧍",
+      "title": "Parties du Corps",
+      "script": "46-body.js",
+      "locked": false
+    },
+    {
+      "id": "47",
+      "emoji": "🏃",
+      "title": "Bouge avec Moi",
+      "script": "47-move.js",
+      "locked": false
+    },
+    {
+      "id": "48",
+      "emoji": "😊",
+      "title": "Les Émotions",
+      "script": "48-emotions.js",
+      "locked": false
+    },
+    {
+      "id": "49",
+      "emoji": "👕",
+      "title": "S'habiller",
+      "script": "49-dress.js",
+      "locked": false
+    },
+    {
+      "id": "50",
+      "emoji": "🍓",
+      "title": "Fruits & Légumes",
+      "script": "50-fruits.js",
+      "locked": false
+    }
+  ]
+}

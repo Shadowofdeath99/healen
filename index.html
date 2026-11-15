@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5" />
+<meta name="theme-color" content="#ff8fb1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>Ma Fille FR — هيفين & الصغيرة</title>
+<link rel="stylesheet" href="./css/base.css" />
+<link rel="stylesheet" href="./css/layout.css" />
+<link rel="stylesheet" href="./css/games.css" />
+<link rel="stylesheet" href="./css/coloring.css" />
+</head>
+<body>
+<div id="app" class="app-shell">
+
+  <section id="splash" class="splash">
+    <div class="splash-inner">
+      <div class="splash-emoji">🌸</div>
+      <h1 class="splash-title">Ma Fille</h1>
+      <p class="splash-sub">Bonjour! أهلاً يا حبيبتي</p>
+      <button id="btn-start" class="btn-primary btn-xl">يلا نلعب ▶️</button>
+    </div>
+  </section>
+
+  <section id="home" class="screen hidden">
+    <header class="topbar">
+      <h2 class="topbar-title">🎮 اختاري لعبة</h2>
+      <button id="btn-parent" class="btn-icon" title="Parent Dashboard">👨‍👩‍👧</button>
+    </header>
+    <div id="games-grid" class="games-grid"></div>
+  </section>
+
+  <section id="game-view" class="screen hidden">
+    <header class="topbar">
+      <button id="btn-back" class="btn-icon" title="رجوع">⬅️</button>
+      <h2 id="game-title" class="topbar-title">لعبة</h2>
+      <div class="spacer"></div>
+    </header>
+    <div id="game-container" class="game-container"></div>
+  </section>
+
+  <section id="dashboard" class="screen hidden">
+    <header class="topbar">
+      <button id="btn-dash-back" class="btn-icon" title="رجوع">⬅️</button>
+      <h2 class="topbar-title">👨‍👩‍👧 لوحة الوالدين</h2>
+      <div class="spacer"></div>
+    </header>
+    <div class="dashboard-tabs">
+      <button class="tab active" data-tab="recorder">🎙️ استوديو التسجيل</button>
+      <button class="tab" data-tab="games">🎮 إدارة الألعاب</button>
+      <button class="tab" data-tab="backup">💾 نسخ احتياطي</button>
+    </div>
+    <div id="dash-content" class="dash-content"></div>
+  </section>
+
+</div>
+
+<script src="./js/storage.js"></script>
+<script src="./js/audio.js"></script>
+<script src="./js/router.js"></script>
+<script src="./js/games-loader.js"></script>
+<script src="./js/dashboard.js"></script>
+<script src="./js/voice-dictionary.js"></script>
+<script src="./js/shared-data.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

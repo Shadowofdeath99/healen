@@ -1,0 +1,52 @@
+/* ===== Coloring styles ===== */
+.color-toolbar{
+  display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#fff;
+  border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.08);justify-content:center;
+  margin-bottom:8px;
+}
+.swatch{
+  width:clamp(36px,8vw,48px);height:clamp(36px,8vw,48px);border-radius:50%;
+  border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer;
+  transition:transform .12s;
+}
+.swatch.active{transform:scale(1.2);border-color:#333}
+.swatch:active{transform:scale(.9)}
+.brush-size{
+  width:clamp(36px,8vw,48px);height:clamp(36px,8vw,48px);border-radius:50%;
+  background:#ffe1ea;border:3px solid #fff;cursor:pointer;display:grid;place-items:center;font-weight:bold;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);font-size:14px;
+}
+.brush-size.active{background:#ff8fb1;color:#fff}
+.mode-toggle{
+  padding:10px 16px;border-radius:20px;background:#7ec8ff;color:#fff;font-weight:bold;
+  font-size:clamp(12px,2.5vw,15px);cursor:pointer;box-shadow:0 2px 6px rgba(126,200,255,.3);
+}
+.mode-toggle.guided{background:#ff8fb1;box-shadow:0 2px 6px rgba(255,143,177,.3)}
+.canvas-area{
+  flex:1;position:relative;background:#fff;border-radius:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.08);overflow:hidden;
+  touch-action:none;min-height:300px;
+}
+.canvas-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.svg-overlay{
+  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+}
+.draw-actions{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.action-btn{
+  padding:10px 16px;border-radius:20px;background:#fff;font-weight:bold;
+  font-size:clamp(12px,2.5vw,15px);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.action-btn.primary{background:#9be3a8;color:#fff}
+.action-btn.danger{background:#ffb3b3;color:#fff}
+
+/* Connect dots */
+.dots-wrap{position:relative;flex:1;background:#fff;border-radius:20px;box-shadow:0 4px 16px rgba(0,0,0,.08);overflow:hidden;min-height:300px}
+.dots-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
+.dot-point{
+  position:absolute;width:clamp(28px,6vw,36px);height:clamp(28px,6vw,36px);
+  border-radius:50%;background:#ff8fb1;color:#fff;display:grid;place-items:center;
+  font-weight:bold;font-size:clamp(12px,2.5vw,15px);cursor:pointer;z-index:2;
+  box-shadow:0 2px 8px rgba(255,143,177,.4);transition:transform .12s;
+}
+.dot-point:active{transform:scale(.9)}
+.dot-point.done{background:#9be3a8}
