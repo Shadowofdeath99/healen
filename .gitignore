@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+audio/intro*.mp3
+audio/intro*.wav
+audio/intro*.webm
+backup-*.json

@@ -7,6 +7,7 @@ window.Dashboard = (() => {
   let activeSection = 'encouragement';
 
   const SECTION_LABELS = {
+    intro: '📢 التعليمات (قبل اللعب)',
     encouragement: '💪 التشجيع',
     ui: '🎮 واجهة اللعب',
     numbers: '🔢 الأرقام',

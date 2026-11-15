@@ -203,6 +203,11 @@ window.VOICE_DICT = {
     { id: 'fr_touche_sol', fr: 'Touche le sol',     eg: 'المسي الأرض',  p: 2, emoji: '👇' },
     { id: 'fr_leve_bras',  fr: 'Lève les bras',     eg: 'ارفعي إيديك',  p: 2, emoji: '🙌' },
     { id: 'fr_danse',      fr: 'Danse !',           eg: 'اتنططي',       p: 2, emoji: '💃' }
+  ],
+
+  // ===== Pre-game intro (long recording) =====
+  intro: [
+    { id: 'fr_intro_full', fr: 'Bienvenue !', eg: 'أهلاً بيكي يا حبيبتي في لعبة هيلين! أنا هحكيلك بسرعة إزاي نلعب. اللعبة دي فيها ألعاب كتير حلوة: أرقام وحروف وألوان وحيوانات وحاجات كتير. كل لعبة هتقولك تعملي إيه، اسمعيها كويس. ولو غلطتي متزعليش خالص، جربي تاني، إحنا بنتعلم مع بعض. يلا بينا نبدأ!', p: 1, long: true }
   ]
 };
 
