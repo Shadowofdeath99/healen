@@ -1,0 +1,28 @@
+{
+  "name": "Ma Fille — هيلين",
+  "short_name": "Ma Fille",
+  "description": "لعبة تعليمية تفاعلية للصغار — أرقام، حروف، ألوان، حيوانات وأكتر",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff7fa",
+  "theme_color": "#ff8fb1",
+  "categories": ["education", "games", "kids"],
+  "icons": [
+    {
+      "src": "./img/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./img/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

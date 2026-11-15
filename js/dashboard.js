@@ -508,6 +508,120 @@ window.Dashboard = (() => {
     setTimeout(() => startRecording(nextRecId), 400);
   }
 
+  async function renderStats() {
+    const c = document.getElementById('dash-content');
+    let history = [];
+    try { history = Store.get('play_history', []) || []; } catch(e){}
+    history = history.filter(h => h && h.ts && h.gameId);
+    const m = await window.GamesLoader.loadManifest();
+    const gm = {};
+    (m.games || []).forEach(g => { gm[g.id] = g; });
+
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startWeek = startToday - (now.getDay() * 86400000);
+    const days = [];
+    const names = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(startToday - i * 86400000);
+      days.push({ start: d.getTime(), label: names[d.getDay()], plays: 0, sec: 0 });
+    }
+
+    let tPlays = 0, tSec = 0, wPlays = 0, wSec = 0;
+    const counts = {};
+    history.forEach(h => {
+      const dur = h.dur || 0;
+      counts[h.gameId] = (counts[h.gameId] || 0) + 1;
+      if (h.ts >= startToday) { tPlays++; tSec += dur; }
+      if (h.ts >= startWeek) { wPlays++; wSec += dur; }
+      for (const day of days) {
+        if (h.ts >= day.start && h.ts < day.start + 86400000) { day.plays++; day.sec += dur; break; }
+      }
+    });
+
+    const fmtT = (sec) => {
+      if (!sec) return '0 دقيقة';
+      const min = Math.round(sec / 60);
+      if (min < 60) return min + ' دقيقة';
+      const h = Math.floor(min / 60), r = min % 60;
+      return h + ' ساعة' + (r ? ' ' + r + ' دقيقة' : '');
+    };
+
+    const top = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const maxP = Math.max(1, ...days.map(d => d.plays));
+    const recent = history.slice(-10).reverse();
+
+    c.innerHTML = `
+      <div style="padding:16px;background:linear-gradient(135deg,#fff7fa,#ffe1ea);border-radius:14px;margin-bottom:12px">
+        <div style="font-size:16px;font-weight:bold;color:#e0567f;text-align:center;margin-bottom:12px">📊 نشاط ${(Settings.getChildName()||'الطفلة')}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:12px;background:#fff;border-radius:10px;text-align:center">
+            <div style="font-size:24px;font-weight:bold;color:#e0567f">${tPlays}</div>
+            <div style="font-size:12px;color:#6b5560">لعبة النهاردة</div>
+            <div style="font-size:11px;color:#999;margin-top:4px">⏱️ ${fmtT(tSec)}</div>
+          </div>
+          <div style="padding:12px;background:#fff;border-radius:10px;text-align:center">
+            <div style="font-size:24px;font-weight:bold;color:#e0567f">${wPlays}</div>
+            <div style="font-size:12px;color:#6b5560">لعبة الأسبوع</div>
+            <div style="font-size:11px;color:#999;margin-top:4px">⏱️ ${fmtT(wSec)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
+        <h3 style="color:#e0567f;margin:0 0 12px;font-size:15px">📈 آخر 7 أيام</h3>
+        <div style="display:flex;align-items:flex-end;justify-content:space-around;height:140px;gap:4px">
+          ${days.map(d => {
+            const bh = Math.max(6, Math.round((d.plays / maxP) * 120));
+            return `<div style="flex:1;text-align:center">
+              <div style="font-size:11px;color:#999;margin-bottom:4px">${d.plays || ''}</div>
+              <div style="background:${d.plays ? 'linear-gradient(180deg,#ff8fb1,#e0567f)' : '#eee'};height:${bh}px;border-radius:6px 6px 0 0"></div>
+              <div style="font-size:11px;color:#6b5560;margin-top:4px">${d.label}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      ${top.length ? `<div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
+        <h3 style="color:#e0567f;margin:0 0 12px;font-size:15px">🏆 الألعاب المفضلة</h3>
+        ${top.map(([gid, cnt], i) => {
+          const g = gm[gid] || { emoji: '🎮', title: 'لعبة ' + gid };
+          return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5">
+            <span style="font-size:18px">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
+            <span style="font-size:20px">${g.emoji}</span>
+            <span style="flex:1;font-size:13px">${g.title}</span>
+            <span style="font-size:12px;font-weight:bold;color:#e0567f">${cnt}×</span>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+
+      ${recent.length ? `<div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
+        <h3 style="color:#e0567f;margin:0 0 12px;font-size:15px">🕒 آخر الألعاب</h3>
+        ${recent.map(h => {
+          const g = gm[h.gameId] || { emoji: '🎮', title: 'لعبة ' + h.gameId };
+          const ago = Math.round((Date.now() - h.ts) / 60000);
+          const agoS = ago < 1 ? 'الآن' : ago < 60 ? ago + ' د' : Math.round(ago / 60) + ' س';
+          const durS = Math.max(1, Math.round((h.dur || 0) / 60)) + 'د';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px">
+            <span>${g.emoji}</span>
+            <span style="flex:1">${g.title}</span>
+            <span style="font-size:11px;color:#999">${agoS} • ${durS}</span>
+          </div>`;
+        }).join('')}
+      </div>` : '<div style="padding:24px;text-align:center;color:#999">لسه مفيش نشاط مسجل</div>'}
+
+      <div style="padding:16px;background:#fff;border-radius:14px">
+        <button id="btn-clear-history" style="padding:10px 20px;border-radius:10px;background:#ffc9d4;font-weight:bold;font-size:13px;cursor:pointer">🗑️ مسح سجل اللعب</button>
+      </div>
+    `;
+
+    document.getElementById('btn-clear-history').addEventListener('click', () => {
+      if (!confirm('هتمسح كل سجل اللعب؟ (الإحصائيات هتصفر)')) return;
+      Store.set('play_history', []);
+      renderStats();
+    });
+  }
+
   function bindTabs() {
     document.querySelectorAll('.dashboard-tabs .tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -518,6 +632,7 @@ window.Dashboard = (() => {
         else if (which === 'backup') renderBackup();
         else if (which === 'settings') renderSettings();
         else if (which === 'games') renderGames();
+        else if (which === 'stats') renderStats();
       });
     });
   }

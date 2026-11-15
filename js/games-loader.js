@@ -41,6 +41,43 @@ window.GamesLoader = (() => {
     });
   }
 
+  let currentSession = null;
+
+  function endSession(){
+    if(!currentSession) return;
+    try {
+      const dur = Math.round((Date.now() - currentSession.start) / 1000);
+      if(dur >= 3 && window.Store){
+        const hist = Store.get('play_history', []) || [];
+        hist.push({ gameId: currentSession.gameId, ts: Date.now(), dur });
+        if(hist.length > 500) hist.splice(0, hist.length - 500);
+        Store.set('play_history', hist);
+      }
+    } catch(e) { console.warn('[endSession]', e); }
+    currentSession = null;
+  }
+
+  function startSession(id){
+    endSession();
+    currentSession = { gameId: id, start: Date.now() };
+  }
+
+  function bindSessionEvents(){
+    if(window.__hlSessionBound) return;
+    window.__hlSessionBound = true;
+    window.addEventListener('hashchange', () => {
+      if(!location.hash.startsWith('#/game/')) endSession();
+    });
+    window.addEventListener('beforeunload', endSession);
+    window.addEventListener('pagehide', endSession);
+    document.addEventListener('visibilitychange', () => {
+      if(document.hidden && currentSession){
+        const snap = currentSession;
+        setTimeout(() => { if(document.hidden && currentSession === snap) endSession(); }, 30000);
+      }
+    });
+  }
+
   function trackPlay(id){
     try {
       if(!window.Store) return;
@@ -67,6 +104,8 @@ window.GamesLoader = (() => {
     if(!mod || typeof mod.mount !== 'function') throw new Error('Invalid game module: ' + id);
     await mod.mount(container);
     trackPlay(id);
+    bindSessionEvents();
+    startSession(id);
   }
 
   return { loadManifest, renderGrid, mountGame };
