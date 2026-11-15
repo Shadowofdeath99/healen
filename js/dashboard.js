@@ -1,4 +1,4 @@
-/* ===== Parent Dashboard v2 — search, filter, settings, progress per section ===== */
+/* ===== Parent Dashboard v3 — full settings + games management ===== */
 window.Dashboard = (() => {
   let mediaRecorder = null;
   let chunks = [];
@@ -7,6 +7,8 @@ window.Dashboard = (() => {
   let activeSection = 'intro';
   let searchQuery = '';
   let filterMode = 'all';
+  let gamesSearch = '';
+  let gamesFilter = 'all';
 
   const SECTION_LABELS = {
     intro: '📢 التعليمات',
@@ -28,15 +30,24 @@ window.Dashboard = (() => {
 
   const Settings = {
     getChildName: () => Store.get('child_name', ''),
-    setChildName: (v) => Store.set('child_name', v),
+    setChildName: (v) => Store.set('child_name', v || ''),
     getTtsSpeed: () => { const v = parseFloat(Store.get('tts_speed', 0.85)); return isNaN(v) ? 0.85 : v; },
-    setTtsSpeed: (v) => Store.set('tts_speed', Math.max(0.5, Math.min(1.5, v || 0.85))),
+    setTtsSpeed: (v) => Store.set('tts_speed', Math.max(0.5, Math.min(1.5, parseFloat(v) || 0.85))),
     getPin: () => Store.get('parent_pin', ''),
-    setPin: (v) => Store.set('parent_pin', v || ''),
+    setPin: (v) => Store.set('parent_pin', String(v || '').trim()),
     getAutoAdvance: () => Store.get('auto_advance', false),
-    setAutoAdvance: (v) => Store.set('auto_advance', !!v)
+    setAutoAdvance: (v) => Store.set('auto_advance', !!v),
+    getLanguage: () => { const v = Store.get('language', 'both'); return (v === 'fr' || v === 'eg') ? v : 'both'; },
+    setLanguage: (v) => Store.set('language', (v === 'fr' || v === 'eg') ? v : 'both'),
+    getTheme: () => { const v = Store.get('theme', 'pink'); return ['pink','blue','green','purple'].includes(v) ? v : 'pink'; },
+    setTheme: (v) => Store.set('theme', ['pink','blue','green','purple'].includes(v) ? v : 'pink'),
+    getDisabledGames: () => { const v = Store.get('disabled_games', []); return Array.isArray(v) ? v : []; },
+    setDisabledGames: (arr) => Store.set('disabled_games', Array.isArray(arr) ? arr : []),
+    getGameStats: () => { const v = Store.get('game_stats', {}); return (v && typeof v === 'object') ? v : {}; },
+    setGameStats: (obj) => Store.set('game_stats', obj || {})
   };
 
+  /* ========== Recording ========== */
   async function startRecording(id) {
     currentId = id;
     try {
@@ -68,12 +79,10 @@ window.Dashboard = (() => {
     const isEg = id.startsWith('eg_');
     if (state === 'recording') {
       btn.textContent = '⏹️ وقف';
-      btn.style.background = '#e0567f';
-      btn.style.color = '#fff';
+      btn.style.background = '#e0567f'; btn.style.color = '#fff';
     } else {
       btn.textContent = isEg ? '🎙️ EG' : '🎙️ FR';
-      btn.style.background = '';
-      btn.style.color = '';
+      btn.style.background = ''; btn.style.color = '';
     }
   }
 
@@ -81,7 +90,6 @@ window.Dashboard = (() => {
     const ok = await Audio2.play(id, {});
     if (ok === 'none') alert('مفيش تسجيل لسه');
   }
-
   async function deleteRec(id) {
     if (!confirm('هتحذف التسجيل ده؟')) return;
     await Store.deleteAudio(id);
@@ -97,6 +105,7 @@ window.Dashboard = (() => {
     return { p1Total: p1.length, p1Done, allTotal: all.length, allDone: recorded.size };
   }
 
+  /* ========== Studio (recording) ========== */
   async function renderSection(section) {
     activeSection = section;
     const list = await Store.listAudio();
@@ -116,7 +125,6 @@ window.Dashboard = (() => {
         (it.id || '').toLowerCase().includes(q)
       );
     }
-
     if (filterMode === 'recorded') items = items.filter(it => hasRec(it));
     else if (filterMode === 'unrecorded') items = items.filter(it => !hasRec(it));
     else if (filterMode === 'p1') items = items.filter(it => it.p === 1);
@@ -130,7 +138,7 @@ window.Dashboard = (() => {
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <input id="search-box" type="text" placeholder="🔍 ابحث بالعربي أو الفرنسي..." value="${searchQuery.replace(/"/g,'&quot;')}"
+        <input id="search-box" type="text" placeholder="🔍 ابحث..." value="${searchQuery.replace(/"/g,'&quot;')}"
           style="flex:1;min-width:180px;padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit" />
         <select id="filter-mode" style="padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit">
           <option value="all"${filterMode==='all'?' selected':''}>الكل</option>
@@ -141,27 +149,19 @@ window.Dashboard = (() => {
       </div>
       <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px">
         ${Object.keys(SECTION_LABELS).map(k => {
-          const sectItems = VOICE_DICT[k] || [];
-          const sectRec = sectItems.filter(it => hasRec(it)).length;
-          const isActive = k === section;
-          return `<button class="tab ${isActive?'active':''}" data-sec="${k}" style="white-space:nowrap">${SECTION_LABELS[k]} <small style="opacity:.75">${sectRec}/${sectItems.length}</small></button>`;
+          const si = VOICE_DICT[k] || [];
+          const sr = si.filter(it => hasRec(it)).length;
+          return `<button class="tab ${k===section?'active':''}" data-sec="${k}" style="white-space:nowrap">${SECTION_LABELS[k]} <small style="opacity:.75">${sr}/${si.length}</small></button>`;
         }).join('')}
       </div>
       ${items.length === 0 ? '<div style="text-align:center;padding:24px;color:#999">مفيش نتائج</div>' : ''}
       <div id="phrase-list"></div>
     `;
 
-    document.getElementById('search-box').addEventListener('input', (e) => {
-      searchQuery = e.target.value; renderSection(activeSection);
-    });
-    document.getElementById('filter-mode').addEventListener('change', (e) => {
-      filterMode = e.target.value; renderSection(activeSection);
-    });
+    document.getElementById('search-box').addEventListener('input', (e) => { searchQuery = e.target.value; renderSection(activeSection); });
+    document.getElementById('filter-mode').addEventListener('change', (e) => { filterMode = e.target.value; renderSection(activeSection); });
     c.querySelectorAll('[data-sec]').forEach(tab => {
-      tab.addEventListener('click', () => {
-        searchQuery = ''; filterMode = 'all';
-        renderSection(tab.dataset.sec);
-      });
+      tab.addEventListener('click', () => { searchQuery = ''; filterMode = 'all'; renderSection(tab.dataset.sec); });
     });
 
     const listC = document.getElementById('phrase-list');
@@ -173,37 +173,34 @@ window.Dashboard = (() => {
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
           <div style="flex:1;min-width:150px">
             <div style="font-size:15px;font-weight:bold">${has ? '✅' : '⬜'} ${item.fr}</div>
-            <div style="font-size:13px;color:#6b5560;${item.long ? 'white-space:pre-line;max-height:90px;overflow-y:auto;padding:6px;background:#fafafa;border-radius:6px;margin-top:4px' : ''}">${egText}</div>
+            <div style="font-size:13px;color:#6b5560;${item.long?'white-space:pre-line;max-height:90px;overflow-y:auto;padding:6px;background:#fafafa;border-radius:6px;margin-top:4px':''}">${egText}</div>
             ${item.p === 1 ? '<div style="font-size:11px;color:#e0567f">⭐ أساسي</div>' : ''}
           </div>
           <button data-rec="${item.id}" style="padding:8px 12px;border-radius:10px;background:#ffe1ea;font-size:13px;font-weight:bold;cursor:pointer">🎙️ FR</button>
-          ${has ? `<button data-play="${item.id}" style="padding:8px 12px;border-radius:10px;background:#d9f0ff;font-size:13px;cursor:pointer">▶️ FR</button><button data-del="${item.id}" style="padding:8px 10px;border-radius:10px;background:#ffd9d9;font-size:12px;cursor:pointer" title="حذف">🗑️</button>` : ''}
+          ${has ? `<button data-play="${item.id}" style="padding:8px 12px;border-radius:10px;background:#d9f0ff;font-size:13px;cursor:pointer">▶️ FR</button><button data-del="${item.id}" style="padding:8px 10px;border-radius:10px;background:#ffd9d9;font-size:12px;cursor:pointer">🗑️</button>` : ''}
           <button data-rec="${egId(item)}" style="padding:8px 12px;border-radius:10px;background:#ffe1ea;font-size:13px;font-weight:bold;cursor:pointer">🎙️ EG</button>
-          ${hasEg ? `<button data-play="${egId(item)}" style="padding:8px 12px;border-radius:10px;background:#d9f0ff;font-size:13px;cursor:pointer">▶️ EG</button><button data-del="${egId(item)}" style="padding:8px 10px;border-radius:10px;background:#ffd9d9;font-size:12px;cursor:pointer" title="حذف">🗑️</button>` : ''}
+          ${hasEg ? `<button data-play="${egId(item)}" style="padding:8px 12px;border-radius:10px;background:#d9f0ff;font-size:13px;cursor:pointer">▶️ EG</button><button data-del="${egId(item)}" style="padding:8px 10px;border-radius:10px;background:#ffd9d9;font-size:12px;cursor:pointer">🗑️</button>` : ''}
         </div>
       `;
     }).join('');
 
-    listC.querySelectorAll('[data-rec]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
-        else startRecording(btn.dataset.rec);
-      });
-    });
-    listC.querySelectorAll('[data-play]').forEach(btn => {
-      btn.addEventListener('click', () => playRec(btn.dataset.play));
-    });
-    listC.querySelectorAll('[data-del]').forEach(btn => {
-      btn.addEventListener('click', () => deleteRec(btn.dataset.del));
-    });
+    listC.querySelectorAll('[data-rec]').forEach(btn => btn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
+      else startRecording(btn.dataset.rec);
+    }));
+    listC.querySelectorAll('[data-play]').forEach(btn => btn.addEventListener('click', () => playRec(btn.dataset.play)));
+    listC.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => deleteRec(btn.dataset.del)));
   }
 
+  /* ========== Settings ========== */
   async function renderSettings() {
     const c = document.getElementById('dash-content');
     const childName = Settings.getChildName();
     const speed = Settings.getTtsSpeed();
     const pin = Settings.getPin();
     const autoAdv = Settings.getAutoAdvance();
+    const lang = Settings.getLanguage();
+    const theme = Settings.getTheme();
 
     c.innerHTML = `
       <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
@@ -211,6 +208,14 @@ window.Dashboard = (() => {
         <label style="display:block;font-size:13px;margin-bottom:6px;color:#6b5560">اسم الطفلة</label>
         <input id="set-child-name" type="text" placeholder="مثال: هيلين" value="${(childName||'').replace(/"/g,'&quot;')}"
           style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit" />
+      </div>
+      <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
+        <h3 style="color:#e0567f;margin:0 0 12px">🌐 اللغة</h3>
+        <select id="set-language" style="padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit;width:100%">
+          <option value="both"${lang==='both'?' selected':''}>🇫🇷 فرنسي + 🇪🇬 مصري (الافتراضي)</option>
+          <option value="fr"${lang==='fr'?' selected':''}>🇫🇷 فرنسي فقط</option>
+          <option value="eg"${lang==='eg'?' selected':''}>🇪🇬 مصري فقط</option>
+        </select>
       </div>
       <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
         <h3 style="color:#e0567f;margin:0 0 12px">🔊 سرعة الصوت (TTS)</h3>
@@ -221,23 +226,35 @@ window.Dashboard = (() => {
         <button id="btn-test-tts" style="margin-top:10px;padding:8px 16px;border-radius:10px;background:#d9f0ff;font-size:13px;cursor:pointer">🔊 جرّبي</button>
       </div>
       <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
+        <h3 style="color:#e0567f;margin:0 0 12px">🎨 الثيم</h3>
+        <select id="set-theme" style="padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit;width:100%">
+          <option value="pink"${theme==='pink'?' selected':''}>🌸 وردي (الافتراضي)</option>
+          <option value="blue"${theme==='blue'?' selected':''}>💙 أزرق</option>
+          <option value="green"${theme==='green'?' selected':''}>💚 أخضر</option>
+          <option value="purple"${theme==='purple'?' selected':''}>💜 بنفسجي</option>
+        </select>
+        <p style="font-size:12px;color:#999;margin:6px 0 0">⚠️ الثيم بيتطبق في التحديث الجاي</p>
+      </div>
+      <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
         <h3 style="color:#e0567f;margin:0 0 12px">⌨️ سلوك التسجيل</h3>
         <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer">
           <input id="set-auto-adv" type="checkbox" ${autoAdv?'checked':''} />
-          الانتقال التلقائي للعبارة التالية بعد الحفظ
+          الانتقال التلقائي للعبارة التالية
         </label>
       </div>
       <div style="padding:16px;background:#fff;border-radius:14px;margin-bottom:12px">
-        <h3 style="color:#e0567f;margin:0 0 12px">🔐 رمز الداشبورد</h3>
+        <h3 style="color:#e0567f;margin:0 0 12px">🔐 رمز الداشبورد (PIN)</h3>
         <p style="font-size:13px;color:#6b5560;margin:0 0 10px">اتركيه فاضي لتعطيل الحماية</p>
         <input id="set-pin" type="password" placeholder="••••" maxlength="6" value="${(pin||'').replace(/"/g,'&quot;')}"
-          style="width:120px;padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit;text-align:center;letter-spacing:6px" />
+          style="width:120px;padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;text-align:center;letter-spacing:6px;font-family:inherit" />
       </div>
       <div style="padding:16px;background:#fff;border-radius:14px">
         <h3 style="color:#e0567f;margin:0 0 12px">🛠️ أدوات</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button id="btn-save-settings" style="padding:10px 20px;border-radius:10px;background:#9be3a8;font-weight:bold;font-size:14px;cursor:pointer">💾 حفظ الإعدادات</button>
-          <button id="btn-clear-all" style="padding:10px 20px;border-radius:10px;background:#ffc9d4;font-weight:bold;font-size:14px;cursor:pointer">🗑️ مسح كل التسجيلات</button>
+          <button id="btn-replay-intro" style="padding:10px 20px;border-radius:10px;background:#d9f0ff;font-weight:bold;font-size:14px;cursor:pointer">🎧 اسمعي التعليمات الحالية</button>
+          <button id="btn-reset-intro" style="padding:10px 20px;border-radius:10px;background:#ffe1ea;font-weight:bold;font-size:14px;cursor:pointer">🗑️ مسح تسجيل التعليمات</button>
+          <button id="btn-clear-all" style="padding:10px 20px;border-radius:10px;background:#ffc9d4;font-weight:bold;font-size:14px;cursor:pointer">⚠️ مسح كل التسجيلات</button>
         </div>
       </div>
     `;
@@ -249,10 +266,10 @@ window.Dashboard = (() => {
       const sp = parseFloat(document.getElementById('set-speed').value);
       if (window.speechSynthesis) {
         speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance('أهلاً يا حبيبتي، اختبار سرعة الصوت');
+        const name = document.getElementById('set-child-name').value.trim() || 'يا حبيبتي';
+        const u = new SpeechSynthesisUtterance('أهلاً ' + name + '، اختبار سرعة الصوت');
         u.lang = 'ar-EG'; u.rate = sp;
-        const vs = speechSynthesis.getVoices();
-        const v = vs.find(x => /ar[-_]EG/i.test(x.lang)) || vs.find(x => /ar/i.test(x.lang));
+        const v = (speechSynthesis.getVoices() || []).find(x => /ar[-_]EG/i.test(x.lang)) || (speechSynthesis.getVoices() || []).find(x => /ar/i.test(x.lang));
         if (v) u.voice = v;
         speechSynthesis.speak(u);
       }
@@ -261,12 +278,22 @@ window.Dashboard = (() => {
       Settings.setChildName(document.getElementById('set-child-name').value.trim());
       Settings.setTtsSpeed(parseFloat(document.getElementById('set-speed').value));
       Settings.setAutoAdvance(document.getElementById('set-auto-adv').checked);
-      Settings.setPin(document.getElementById('set-pin').value.trim());
+      Settings.setPin(document.getElementById('set-pin').value);
+      Settings.setLanguage(document.getElementById('set-language').value);
+      Settings.setTheme(document.getElementById('set-theme').value);
       alert('✅ تم الحفظ');
+    });
+    document.getElementById('btn-replay-intro').addEventListener('click', () => {
+      Audio2.play('eg_intro_full', {});
+    });
+    document.getElementById('btn-reset-intro').addEventListener('click', async () => {
+      if (!confirm('هتمسح تسجيل التعليمات. متأكدة؟')) return;
+      await Store.deleteAudio('eg_intro_full');
+      alert('✅ اتمسح');
     });
     document.getElementById('btn-clear-all').addEventListener('click', async () => {
       if (!confirm('⚠️ هيتمسح كل التسجيلات نهائياً. متأكدة؟')) return;
-      if (!confirm('تأكيد أخير: مسح الكل؟')) return;
+      if (!confirm('تأكيد أخير؟')) return;
       const list = await Store.listAudio();
       for (const r of list) await Store.deleteAudio(r.id);
       alert('✅ اتمسح ' + list.length + ' تسجيل');
@@ -274,6 +301,115 @@ window.Dashboard = (() => {
     });
   }
 
+  /* ========== Games Management ========== */
+  async function renderGames() {
+    const c = document.getElementById('dash-content');
+    const m = await window.GamesLoader.loadManifest();
+    const disabled = new Set(Settings.getDisabledGames());
+    const stats = Settings.getGameStats();
+    let games = m.games.slice();
+
+    if (gamesSearch.trim()) {
+      const q = gamesSearch.trim().toLowerCase();
+      games = games.filter(g => (g.title||'').toLowerCase().includes(q) || (g.emoji||'').includes(q) || g.id === q);
+    }
+    if (gamesFilter === 'enabled') games = games.filter(g => !disabled.has(g.id));
+    else if (gamesFilter === 'disabled') games = games.filter(g => disabled.has(g.id));
+
+    const enabledCount = m.games.filter(g => !disabled.has(g.id)).length;
+    const totalPlays = Object.values(stats).reduce((s, x) => s + (x.plays || 0), 0);
+
+    const fmtDate = (ts) => {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      const diff = Date.now() - ts;
+      if (diff < 3600000) return Math.round(diff/60000) + ' دقيقة';
+      if (diff < 86400000) return Math.round(diff/3600000) + ' ساعة';
+      return Math.round(diff/86400000) + ' يوم';
+    };
+
+    c.innerHTML = `
+      <div style="padding:12px;background:#fff7fa;border-radius:14px;margin-bottom:12px;text-align:center">
+        <div style="font-size:16px;font-weight:bold;color:#e0567f">🎮 حالة الألعاب</div>
+        <div style="font-size:14px;margin-top:6px">
+          مفعّلة: <b>${enabledCount}/${m.games.length}</b> &nbsp;|&nbsp; إجمالي مرات اللعب: <b>${totalPlays}</b>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <input id="games-search" type="text" placeholder="🔍 ابحث عن لعبة..." value="${gamesSearch.replace(/"/g,'&quot;')}"
+          style="flex:1;min-width:180px;padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit" />
+        <select id="games-filter" style="padding:10px 14px;border-radius:12px;border:2px solid #ffe1ea;font-size:14px;font-family:inherit">
+          <option value="all"${gamesFilter==='all'?' selected':''}>الكل</option>
+          <option value="enabled"${gamesFilter==='enabled'?' selected':''}>مفعّلة</option>
+          <option value="disabled"${gamesFilter==='disabled'?' selected':''}>معطّلة</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button id="btn-enable-all" style="padding:8px 16px;border-radius:10px;background:#9be3a8;font-weight:bold;font-size:13px;cursor:pointer">✅ تفعيل الكل</button>
+        <button id="btn-disable-all" style="padding:8px 16px;border-radius:10px;background:#ffc9d4;font-weight:bold;font-size:13px;cursor:pointer">⛔ تعطيل الكل</button>
+        <button id="btn-reset-stats" style="padding:8px 16px;border-radius:10px;background:#ffe1ea;font-weight:bold;font-size:13px;cursor:pointer">🔄 تصفير الإحصائيات</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+        ${games.map(g => {
+          const isDisabled = disabled.has(g.id);
+          const st = stats[g.id] || {};
+          return `
+            <div style="padding:12px;background:${isDisabled?'#f5f5f5':'#fff'};border-radius:12px;border:2px solid ${isDisabled?'#ddd':'#ffe1ea'};opacity:${isDisabled?'0.65':'1'}">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:24px">${g.emoji||'🎮'}</span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${g.title}">${g.title}</div>
+                  <div style="font-size:11px;color:#999">#${g.id}</div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:#6b5560;margin-bottom:8px">
+                ▶️ لُعبت: <b>${st.plays||0}</b> مرة &nbsp;|&nbsp; آخر مرة: <b>${fmtDate(st.lastPlayed)}</b>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button data-toggle="${g.id}" style="flex:1;padding:6px 10px;border-radius:8px;background:${isDisabled?'#9be3a8':'#ffc9d4'};font-size:12px;font-weight:bold;cursor:pointer">${isDisabled?'✅ فعّل':'⛔ عطّل'}</button>
+                ${st.plays ? `<button data-reset="${g.id}" style="padding:6px 10px;border-radius:8px;background:#eee;font-size:12px;cursor:pointer" title="تصفير">🔄</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      ${games.length === 0 ? '<div style="text-align:center;padding:24px;color:#999">مفيش نتائج</div>' : ''}
+    `;
+
+    document.getElementById('games-search').addEventListener('input', (e) => { gamesSearch = e.target.value; renderGames(); });
+    document.getElementById('games-filter').addEventListener('change', (e) => { gamesFilter = e.target.value; renderGames(); });
+    document.getElementById('btn-enable-all').addEventListener('click', () => {
+      if (!confirm('تفعيل كل الألعاب؟')) return;
+      Settings.setDisabledGames([]);
+      renderGames();
+    });
+    document.getElementById('btn-disable-all').addEventListener('click', () => {
+      if (!confirm('⚠️ تعطيل كل الألعاب؟')) return;
+      Settings.setDisabledGames(m.games.map(g => g.id));
+      renderGames();
+    });
+    document.getElementById('btn-reset-stats').addEventListener('click', () => {
+      if (!confirm('تصفير إحصائيات كل الألعاب؟')) return;
+      Settings.setGameStats({});
+      renderGames();
+    });
+    c.querySelectorAll('[data-toggle]').forEach(btn => btn.addEventListener('click', () => {
+      const id = btn.dataset.toggle;
+      const dis = new Set(Settings.getDisabledGames());
+      if (dis.has(id)) dis.delete(id); else dis.add(id);
+      Settings.setDisabledGames([...dis]);
+      renderGames();
+    }));
+    c.querySelectorAll('[data-reset]').forEach(btn => btn.addEventListener('click', () => {
+      const id = btn.dataset.reset;
+      const st = Settings.getGameStats();
+      delete st[id];
+      Settings.setGameStats(st);
+      renderGames();
+    }));
+  }
+
+  /* ========== Backup ========== */
   async function renderBackup() {
     const list = await Store.listAudio();
     const c = document.getElementById('dash-content');
@@ -292,63 +428,59 @@ window.Dashboard = (() => {
     document.getElementById('file-import').addEventListener('change', importBackup);
   }
 
-  async function exportBackup(){
+  async function exportBackup() {
     const list = await Store.listAudio();
     const out = [];
-    for(const r of list){ const b64 = await blobToBase64(r.blob); out.push({ id: r.id, meta: r.meta, data: b64, type: r.blob.type }); }
+    for (const r of list) { const b64 = await blobToBase64(r.blob); out.push({ id: r.id, meta: r.meta, data: b64, type: r.blob.type }); }
     const data = { exportedAt: Date.now(), items: out };
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'ma-fille-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    a.href = url; a.download = 'ma-fille-backup-' + new Date().toISOString().slice(0,10) + '.json';
     a.click(); URL.revokeObjectURL(url);
   }
-
-  async function importBackup(e){
-    const file = e.target.files[0]; if(!file) return;
-    const text = await file.text(); const data = JSON.parse(text);
+  async function importBackup(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const text = await file.text();
+    let data; try { data = JSON.parse(text); } catch { alert('ملف غير صالح'); return; }
     if (!data.items || !Array.isArray(data.items)) { alert('ملف غير صالح'); return; }
     if (!confirm('هيتم استبدال التسجيلات الموجودة بـ ' + data.items.length + ' تسجيل. متأكدة؟')) return;
-    for(const item of data.items){ const blob = base64ToBlob(item.data, item.type || 'audio/webm'); await Store.putAudio(item.id, blob, item.meta || {}); }
+    for (const item of data.items) { const blob = base64ToBlob(item.data, item.type || 'audio/webm'); await Store.putAudio(item.id, blob, item.meta || {}); }
     alert('تم الاستيراد ✅ (' + data.items.length + ' تسجيل)');
     await renderSection(activeSection);
   }
 
-  function blobToBase64(blob){
+  function blobToBase64(blob) {
     return new Promise((res) => { const r = new FileReader(); r.onloadend = () => res(r.result.split(',')[1]); r.readAsDataURL(blob); });
   }
-  function base64ToBlob(b64, type){
+  function base64ToBlob(b64, type) {
     const bin = atob(b64); const arr = new Uint8Array(bin.length);
-    for(let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
     return new Blob([arr], { type });
   }
 
-  function bindTabs(){
+  function bindTabs() {
     document.querySelectorAll('.dashboard-tabs .tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.dashboard-tabs .tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         const which = tab.dataset.tab;
-        if(which === 'recorder') renderSection(activeSection);
-        else if(which === 'backup') renderBackup();
-        else if(which === 'settings') renderSettings();
-        else if(which === 'games'){
-          document.getElementById('dash-content').innerHTML =
-            '<div style="padding:24px;text-align:center;color:#6b5560">🎮 إدارة الألعاب هتيجي في التحديث الجاي</div>';
-        }
+        if (which === 'recorder') renderSection(activeSection);
+        else if (which === 'backup') renderBackup();
+        else if (which === 'settings') renderSettings();
+        else if (which === 'games') renderGames();
       });
     });
   }
 
-  function init(){
+  function init() {
     const pin = Settings.getPin();
     if (pin) {
       const entered = prompt('🔐 أدخلي رمز الداشبورد:');
       if (entered !== pin) {
         alert('❌ رمز غلط');
-        const backBtn = document.getElementById('btn-dash-back');
-        if (backBtn) backBtn.click();
+        const back = document.getElementById('btn-dash-back');
+        if (back) back.click();
         return;
       }
     }

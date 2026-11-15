@@ -5,3 +5,7 @@ audio/intro*.mp3
 audio/intro*.wav
 audio/intro*.webm
 backup-*.json
+
+# Backup files
+*.bak
+*.bak*

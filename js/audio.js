@@ -18,13 +18,13 @@ window.Audio2 = (() => {
       const u = new SpeechSynthesisUtterance(text);
       if(lang === 'eg' || lang === 'ar'){
         u.lang = 'ar-EG';
-        u.rate = 0.85;
+        u.rate = (function(){try{var v=parseFloat(Store.get('tts_speed',0.85));return isNaN(v)?0.85:v;}catch(e){return 0.85;}})();
         u.pitch = 1.1;
         const v = pickVoice('ar');
         if(v) u.voice = v;
       } else {
         u.lang = 'fr-FR';
-        u.rate = 0.85;
+        u.rate = (function(){try{var v=parseFloat(Store.get('tts_speed',0.85));return isNaN(v)?0.85:v;}catch(e){return 0.85;}})();
         u.pitch = 1.1;
         const v = pickVoice('fr');
         if(v) u.voice = v;
