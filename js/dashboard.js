@@ -9,6 +9,9 @@ window.Dashboard = (() => {
   let filterMode = 'all';
   let gamesSearch = '';
   let gamesFilter = 'all';
+  let pendingBlob = null;
+  let pendingId = null;
+  let isPreviewOpen = false;
 
   const SECTION_LABELS = {
     intro: '📢 التعليمات',
@@ -57,9 +60,8 @@ window.Dashboard = (() => {
       mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
-        await Store.putAudio(currentId, blob, { ts: Date.now() });
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        await renderSection(activeSection);
+        showPreviewModal(currentId, blob);
       };
       mediaRecorder.start();
       updateRecBtn(id, 'recording');
@@ -460,6 +462,52 @@ window.Dashboard = (() => {
     return new Blob([arr], { type });
   }
 
+
+  function showPreviewModal(id, blob) {
+    const url = URL.createObjectURL(blob);
+    const isEg = id.startsWith('eg_');
+    const baseId = isEg ? id.replace(/^eg_/, 'fr_') : id;
+    const flat = getAllPhrases();
+    const item = flat.find(x => x.id === baseId) || {};
+    const text = isEg ? (item.eg || '') : (item.fr || '');
+    const overlay = document.createElement('div');
+    overlay.id = 'hl-preview-modal';
+    overlay.style.cssText = 'position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; padding:20px; font-family:Cairo,Tajawal,sans-serif;';
+    overlay.innerHTML = '<div style="background:#fff;border-radius:20px;padding:24px;max-width:420px;width:100%;text-align:center">'
+      + '<h2 style="color:#e0567f;margin:0 0 8px;font-size:1.3rem">🎧 راجعي التسجيل</h2>'
+      + '<p style="color:#6b5560;font-size:14px;margin:0 0 16px;white-space:pre-line;max-height:120px;overflow-y:auto;background:#fafafa;border-radius:8px;padding:8px">' + (text||'') + '</p>'
+      + '<audio id="hl-preview-audio" src="' + url + '" controls style="width:100%;margin-bottom:16px"></audio>'
+      + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'
+      + '<button id="hl-save" style="padding:12px 24px;border-radius:12px;background:#9be3a8;font-weight:bold;font-size:15px;cursor:pointer;border:none">💾 حفظ</button>'
+      + '<button id="hl-redo" style="padding:12px 24px;border-radius:12px;background:#d9f0ff;font-weight:bold;font-size:15px;cursor:pointer;border:none">🔁 إعادة</button>'
+      + '<button id="hl-cancel" style="padding:12px 24px;border-radius:12px;background:#ffc9d4;font-weight:bold;font-size:15px;cursor:pointer;border:none">❌ إلغاء</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
+    isPreviewOpen = true;
+    setTimeout(() => { const a = document.getElementById('hl-preview-audio'); if (a) a.play().catch(() => {}); }, 200);
+    const close = () => { URL.revokeObjectURL(url); overlay.remove(); isPreviewOpen = false; pendingBlob = null; pendingId = null; };
+    document.getElementById('hl-save').addEventListener('click', async () => {
+      await Store.putAudio(id, blob, { ts: Date.now() });
+      const wasAutoAdvance = Settings.getAutoAdvance();
+      close();
+      await renderSection(activeSection);
+      if (wasAutoAdvance) advanceToNext(id);
+    });
+    document.getElementById('hl-redo').addEventListener('click', () => { const rid = id; close(); setTimeout(() => startRecording(rid), 300); });
+    document.getElementById('hl-cancel').addEventListener('click', close);
+  }
+
+  function advanceToNext(currentRecordingId) {
+    const items = VOICE_DICT[activeSection] || [];
+    const isEg = currentRecordingId.startsWith('eg_');
+    const baseId = isEg ? currentRecordingId.replace(/^eg_/, 'fr_') : currentRecordingId;
+    const idx = items.findIndex(it => it.id === baseId);
+    if (idx < 0 || idx >= items.length - 1) return;
+    const next = items[idx + 1];
+    const nextRecId = isEg ? ('eg_' + next.id.replace(/^fr_/, '')) : next.id;
+    setTimeout(() => startRecording(nextRecId), 400);
+  }
+
   function bindTabs() {
     document.querySelectorAll('.dashboard-tabs .tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -487,6 +535,17 @@ window.Dashboard = (() => {
     }
     bindTabs();
     renderSection(activeSection);
+    document.addEventListener('keydown', (e) => {
+      const tag = (document.activeElement && document.activeElement.tagName) || '';
+      if (['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
+      if (e.code !== 'Space' && e.key !== ' ') return;
+      if (isPreviewOpen) return;
+      const dash = document.getElementById('dashboard');
+      if (!dash || dash.classList.contains('hidden')) return;
+      e.preventDefault();
+      if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
+      else if (currentId) startRecording(currentId);
+    });
   }
 
   return { init, renderSection, Settings };
