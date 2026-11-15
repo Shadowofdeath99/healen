@@ -1,5 +1,5 @@
 /* Helen PWA — Service Worker: cache app shell + offline support */
-const CACHE_VERSION = 'ma-fille-v1';
+const CACHE_VERSION = 'ma-fille-v2';
 const PRECACHE = [
   './',
   './index.html',
@@ -19,7 +19,11 @@ const PRECACHE = [
   './js/intro-lock.js',
   './js/settings-applier.js',
   './games/manifest.json',
-  './img/icon.svg'
+  './img/icon.svg',
+  './img/icons/icon-96.png',
+  './img/icons/icon-144.png',
+  './img/icons/icon-192.png',
+  './img/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
